@@ -41,9 +41,11 @@ namespace Planet9.Source.Screens
             
             // Load shoot sound
             SoundEffect shootSound = null;
+            SoundEffect shootSoundLevel2 = null;
             try
             {
                 shootSound = _content.Load<SoundEffect>("laser-shot-simple");
+                shootSoundLevel2 = _content.Load<SoundEffect>("level2-laser-shot");
             }
             catch
             {
@@ -55,7 +57,7 @@ namespace Planet9.Source.Screens
                 _graphicsDevice.Viewport.Width / 2 - 15, 
                 _graphicsDevice.Viewport.Height - 50
             );
-            _player = new Player(_graphicsDevice, startPos, shootSound);
+            _player = new Player(_graphicsDevice, startPos, shootSound, shootSoundLevel2);
             
             _bullets = new List<Bullet>();
             _enemyBullets = new List<Bullet>();

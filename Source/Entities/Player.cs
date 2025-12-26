@@ -15,6 +15,7 @@ namespace Planet9.Source.Entities
         private Texture2D _textureIdle;
         private Texture2D _textureMoving;
         private SoundEffect _shootSound;
+        private SoundEffect _shootSoundLevel2;
         public float Speed = 400f;
         public Rectangle Bounds => new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
 
@@ -32,11 +33,12 @@ namespace Planet9.Source.Entities
 
         public bool IsInvulnerable => _invulnerabilityTimer > 0;
 
-        public Player(GraphicsDevice graphicsDevice, Vector2 startPosition, SoundEffect shootSound)
+        public Player(GraphicsDevice graphicsDevice, Vector2 startPosition, SoundEffect shootSound, SoundEffect shootSoundLevel2)
         {
             _graphicsDevice = graphicsDevice;
             Position = startPosition;
             _shootSound = shootSound;
+            _shootSoundLevel2 = shootSoundLevel2;
             
             // Load ship texture
             using (var stream = TitleContainer.OpenStream("Content/player_ship.png"))
@@ -122,8 +124,17 @@ namespace Planet9.Source.Entities
             _fireTimer -= dt;
             if (kstate.IsKeyDown(Keys.A) && _fireTimer <= 0)
             {
-                _shootSound?.Play();
                 int weaponLevel = GameManager.Instance.WeaponLevel;
+                
+                if (weaponLevel >= 2)
+                {
+                    _shootSoundLevel2?.Play();
+                }
+                else
+                {
+                    _shootSound?.Play();
+                }
+
                 float currentFireRate = (weaponLevel >= 4) ? 0.1f : FireRate;
 
                 if (weaponLevel == 1)
