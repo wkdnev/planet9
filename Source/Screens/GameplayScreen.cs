@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -38,12 +39,23 @@ namespace Planet9.Source.Screens
             _font = _content.Load<SpriteFont>("Arial");
             _random = new System.Random();
             
+            // Load shoot sound
+            SoundEffect shootSound = null;
+            try
+            {
+                shootSound = _content.Load<SoundEffect>("laser-shot-simple");
+            }
+            catch
+            {
+                // Fallback
+            }
+
             // Center the player at the bottom
             Vector2 startPos = new Vector2(
                 _graphicsDevice.Viewport.Width / 2 - 15, 
                 _graphicsDevice.Viewport.Height - 50
             );
-            _player = new Player(_graphicsDevice, startPos);
+            _player = new Player(_graphicsDevice, startPos, shootSound);
             
             _bullets = new List<Bullet>();
             _enemyBullets = new List<Bullet>();

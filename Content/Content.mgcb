@@ -34,3 +34,8 @@
 /importer:Mp3Importer
 /processor:SongProcessor
 /build:level2-music.mp3
+
+#begin laser-shot-simple.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/build:laser-shot-simple.mp3
