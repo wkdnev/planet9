@@ -27,6 +27,7 @@ namespace Planet9.Source.Managers
                 {
                     LevelNumber = i,
                     Name = $"Planet {i}",
+                    BackgroundTextureName = i == 2 ? "level2_bg.png" : "level1_bg.png",
                     Waves = new List<WaveData>()
                 };
 

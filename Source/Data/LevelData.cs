@@ -16,6 +16,7 @@ namespace Planet9.Source.Data
     {
         public int LevelNumber;
         public string Name;
+        public string BackgroundTextureName;
         public List<WaveData> Waves;
     }
 }

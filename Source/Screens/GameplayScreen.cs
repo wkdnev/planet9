@@ -22,9 +22,10 @@ namespace Planet9.Source.Screens
         private Texture2D _enemyTexture;
         private Texture2D _moneyTexture;
         private Texture2D _enemyBulletTexture;
-        private Texture2D _level1Background;
+        private Texture2D _currentBackground;
         private Song _level1Music;
         private Song _level2Music;
+        private Song _gameOverMusic;
         private System.Random _random;
 
         // Level Management
@@ -33,6 +34,8 @@ namespace Planet9.Source.Screens
         private float _enemySpawnTimer = 0f;
         private bool _levelComplete = false;
         private float _levelCompleteTimer = 0f;
+        private bool _isGameOver = false;
+        private float _gameOverTimer = 0f;
 
         public override void LoadContent()
         {
@@ -70,12 +73,15 @@ namespace Planet9.Source.Screens
                 _enemyTexture = Texture2D.FromStream(_graphicsDevice, stream);
             }
 
-            // Load Level 1 Background
+            // Load Background
             try
             {
-                using (var stream = TitleContainer.OpenStream("Content/level1_bg.png"))
+                string bgName = LevelManager.Instance.CurrentLevel.BackgroundTextureName;
+                if (string.IsNullOrEmpty(bgName)) bgName = "level1_bg.png"; // Default
+
+                using (var stream = TitleContainer.OpenStream($"Content/{bgName}"))
                 {
-                    _level1Background = Texture2D.FromStream(_graphicsDevice, stream);
+                    _currentBackground = Texture2D.FromStream(_graphicsDevice, stream);
                 }
             }
             catch
@@ -97,6 +103,16 @@ namespace Planet9.Source.Screens
             try
             {
                 _level2Music = _content.Load<Song>("level2-music");
+            }
+            catch
+            {
+                // Fallback
+            }
+
+            // Load Game Over Music
+            try
+            {
+                _gameOverMusic = _content.Load<Song>("game_over");
             }
             catch
             {
@@ -162,6 +178,17 @@ namespace Planet9.Source.Screens
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 ScreenManager.Instance.LoadScreen(new TitleScreen());
+            }
+
+            if (_isGameOver)
+            {
+                _gameOverTimer -= dt;
+                if (_gameOverTimer <= 0)
+                {
+                    LeaderboardManager.Instance.AddScore("Player", GameManager.Instance.Score);
+                    ScreenManager.Instance.LoadScreen(new TitleScreen());
+                }
+                return; // Skip other updates
             }
 
             if (_levelComplete)
@@ -329,18 +356,24 @@ namespace Planet9.Source.Screens
                 GameManager.Instance.Lives--;
                 if (GameManager.Instance.Lives <= 0)
                 {
-                    LeaderboardManager.Instance.AddScore("Player", GameManager.Instance.Score);
-                    ScreenManager.Instance.LoadScreen(new TitleScreen());
+                    _isGameOver = true;
+                    _gameOverTimer = 4.0f; // Wait 4 seconds
+                    
+                    if (_gameOverMusic != null)
+                    {
+                        MediaPlayer.IsRepeating = false;
+                        MediaPlayer.Play(_gameOverMusic);
+                    }
                 }
             }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            // Draw Background for Level 1
-            if (LevelManager.Instance.CurrentLevel.LevelNumber == 1 && _level1Background != null)
+            // Draw Background
+            if (_currentBackground != null)
             {
-                spriteBatch.Draw(_level1Background, new Rectangle(0, 0, _graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height), Color.White);
+                spriteBatch.Draw(_currentBackground, new Rectangle(0, 0, _graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height), Color.White);
             }
 
             _player.Draw(spriteBatch);
@@ -371,7 +404,14 @@ namespace Planet9.Source.Screens
             spriteBatch.DrawString(_font, $"Level: {LevelManager.Instance.CurrentLevel.LevelNumber} - {LevelManager.Instance.CurrentLevel.Name}", new Vector2(20, 20), Color.White);
             spriteBatch.DrawString(_font, $"Score: {GameManager.Instance.Score}  Money: ${GameManager.Instance.Money}  Lives: {GameManager.Instance.Lives}  Shield: {GameManager.Instance.CurrentShield}/{GameManager.Instance.ShieldLevel}", new Vector2(20, 50), Color.White);
 
-            if (_levelComplete)
+            if (_isGameOver)
+            {
+                string msg = "GAME OVER";
+                Vector2 size = _font.MeasureString(msg);
+                Vector2 center = new Vector2(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
+                spriteBatch.DrawString(_font, msg, center - size / 2, Color.Red);
+            }
+            else if (_levelComplete)
             {
                 string msg = "LEVEL COMPLETE!";
                 Vector2 size = _font.MeasureString(msg);
